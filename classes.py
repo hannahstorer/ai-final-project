@@ -15,7 +15,7 @@ class Card:
                 enemy_debuffs = [x[0] for x in enemy.debuffs]
             else:
                 enemy_debuffs = []
-            if task == 'blk':
+            if task == 'block':
                 if 'frail' in player.debuffs:
                     value = round(value * .66)
                 player.gain_block(value)
@@ -69,7 +69,7 @@ class Enemy:
         self.block = 0
         self.moveset = moveset
         self.debuffs = []
-        self.str = 0
+        self.strength = 0
         self.move = init_move
 
     def start_turn(self):
@@ -86,12 +86,12 @@ class Enemy:
             task = effect[1]
             player_debuffs = [x[0] for x in player.debuffs]
             enemy_debuffs = [x[0] for x in self.debuffs]
-            if task == 'blk':
+            if task == 'block':
                 self.block += value
-            if task == 'str':
-                self.str += value
+            if task == 'strength':
+                self.strength += value
             if task == 'dmg':
-                value += self.str
+                value += self.strength
                 if 'weak' in enemy_debuffs:
                     value = value * .75
                 if 'vuln' in player_debuffs:
@@ -124,15 +124,15 @@ class Enemy:
         
         
 strike = Card('Strike', 1, 'Attack', [(6, 'dmg')])
-defend = Card('Defend', 1, 'Skill', [(5, 'blk')])
+defend = Card('Defend', 1, 'Skill', [(5, 'block')])
 bash = Card('Bash', 2, 'Attack', [(8, 'dmg'), (2, 'vuln')])
 
 clad = Player(70)
 
 nibbit_moveset = [
     [(13, 'dmg')],
-    [(7, 'blk'),(6, 'dmg')],
-    [(3, 'str')]]
+    [(7, 'block'),(6, 'dmg')],
+    [(3, 'strength')]]
 
 nibbit = Enemy(45, nibbit_moveset)
 
@@ -142,6 +142,6 @@ def main():
         print(f'Turn: {i}')
         print(f'Clad hp: {clad.hp}')
         print(f'Nibbit block: {nibbit.block}')
-        print(f'Nibbit str: {nibbit.str}')
+        print(f'Nibbit strength: {nibbit.strength}')
 
 main()
