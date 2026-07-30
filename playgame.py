@@ -7,13 +7,13 @@ def enemy_move(enemy):
     for value, task in move:
         if task == 'dmg':
             total = value + enemy.strength
-            enemy_move_list.appent(f"Enemy attacks for {total}")
+            enemy_move_list.append(f"Enemy attacks for {total}")
         elif task == 'block':
             enemy_move_list.append(f"Enemy blocks for {value}")
         elif task == 'strength':
             enemy_move_list.append(f"Enemy gains {value} strength")
         elif task in ('vuln', 'weak'):
-            enemy_move_list.appemd(f"Apply {value} {task} to enemy")
+            enemy_move_list.append(f"Apply {value} {task} to enemy")
         else:
             enemy_move_list.append(f"{task} {value}")
     return ", ".join(enemy_move_list)
@@ -96,7 +96,7 @@ def pick_enemy(options):
 
 #fight logic
 def run_fight():
-    char_name, char_build_character = pick_character(CHARACTERES)
+    char_name, char_build_character = pick_character(CHARACTERS)
     enemy_name, enemy_build_enemy = pick_enemy(ENEMIES)
     clad = char_build_character()
     nibbit = enemy_build_enemy()
