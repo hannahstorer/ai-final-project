@@ -34,7 +34,6 @@ def player_turn(player, enemy):
     player.start_turn()
     player.deck.draw(5)
     while True:
-        print_state(player,enemy)
         if enemy.hp <= 0 or player.hp <= 0:
             return #game over player died or enemy died
         choice = input("Play a card (number) or type 'end turn' to end your turn: ").strip().lower()
@@ -57,7 +56,10 @@ def player_turn(player, enemy):
         else:
             pile = 'discard_pile'
         player.deck.move_card(card, 'hand', pile)
-        print(f"You played the card {card.name}.")
+        print(f"Player HP: {player.hp}  Player Block: {player.block}    Player Energy: {player.energy}")
+        print(f"You played the card {card.name}. Play another card or 'end turn'!")
+        for i, remaining_card in enumerate(player.deck.hand):
+            print(f"{i + 1}) {remaining_card.name} (cost {remaining_card.cost}) - {remaining_card.type}")
     player.deck.discard_hand()
 
 #make the cards and put them in deck
