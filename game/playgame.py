@@ -37,6 +37,7 @@ def player_turn(player, enemy):
     while True:
         if enemy.hp <= 0 or player.hp <= 0:
             return #game over player died or enemy died
+        print()
         choice = input("Play a card (number) or type 'end turn' to end your turn: ").strip().lower()
         if choice == 'end turn':
             break
@@ -58,7 +59,10 @@ def player_turn(player, enemy):
             pile = 'discard_pile'
         player.deck.move_card(card, 'hand', pile)
         print(f"Player HP: {player.hp}  Player Block: {player.block}    Player Energy: {player.energy}")
+        print(f"Nibbit's next move: {enemy_move(enemy)}")
+        print()
         print(f"You played the card {card.name}. Play another card or 'end turn'!")
+        print()
         for i, remaining_card in enumerate(player.deck.hand):
             print(f"{i + 1}) {remaining_card.name} (cost {remaining_card.cost}) - {remaining_card.type}")
     player.deck.discard_hand()
@@ -78,9 +82,9 @@ def make_nibbit():
 CHARACTERS = {'1': ('Clad', make_clad),}
 ENEMIES = {'1': ('Nibbit', make_nibbit),}
 def pick_character(options):
-    print("\n Choose which character to play as: ")
+    print("\nChoose which character to play as: ")
     for key, (name, build_character) in options.items():
-        print(f"{key} {name}")
+        print(f"{key}) {name}")
     while True:
         choice = input("Enter a number: ").strip()
         if choice in options:
@@ -88,9 +92,9 @@ def pick_character(options):
         print("Invalid input, not a choice. Try again.")
 
 def pick_enemy(options):
-    print("\n Choose which enemy to fight: ")
+    print("\nChoose which enemy to fight: ")
     for key, (name, build_enemy) in options.items():
-        print(f"{key} {name}")
+        print(f"{key}) {name}")
     while True:
         choice = input("Enter a number: ").strip()
         if choice in options:
@@ -119,7 +123,7 @@ def run_fight():
     if clad.hp <= 0:
         print("You lost to Nibbit.")
     else:
-        print(f"You defeated Nibbit! HP: {clad.hp}")
+        print(f"You defeated Nibbit! HP left: {clad.hp}")
     print("-" * 40)
 
 if __name__ == "__main__":
