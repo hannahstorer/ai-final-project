@@ -33,6 +33,7 @@ def print_state(player,enemy):
 def player_turn(player, enemy):
     player.start_turn()
     player.deck.draw(5)
+    print_state(player, enemy)
     while True:
         if enemy.hp <= 0 or player.hp <= 0:
             return #game over player died or enemy died
