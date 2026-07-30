@@ -1,4 +1,4 @@
-from classes import Card, Deck, Player, Enemy
+from game.classes import Card, Deck, Player, Enemy
 
 #enemy's next move
 def enemy_move(enemy):
