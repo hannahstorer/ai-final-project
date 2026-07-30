@@ -215,4 +215,5 @@ def main():
         print(f'Nibbit block: {nibbit.block}')
         print(f'Nibbit strength: {nibbit.strength}')
 
-main()
+if __name__ == "__main__":
+    main()
