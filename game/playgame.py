@@ -72,7 +72,7 @@ def make_clad():
     strike = Card('Strike', 1, 'Attack', [(6, 'dmg')])
     defend = Card('Defend', 1, 'Skill', [(5, 'block')])
     bash = Card('Bash', 2, 'Attack', [(8, 'dmg'), (2, 'vuln')])
-    deck = Deck([strike, defend, bash, strike, defend, bash])
+    deck = Deck([strike, strike, strike, strike, defend, defend, defend, defend, bash])
     return Player(64, deck)
 #make moves for nibbit enemy
 def make_nibbit():
