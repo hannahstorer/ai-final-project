@@ -1,4 +1,8 @@
 from classes import Card, Deck, Player, Enemy
+import random
+#to run the game go to game folder in terminal and run playgame.py
+#cd game
+#python3 playgame.py
 
 #enemy's next move
 def enemy_move(enemy):
@@ -72,12 +76,16 @@ def make_clad():
     strike = Card('Strike', 1, 'Attack', [(6, 'dmg')])
     defend = Card('Defend', 1, 'Skill', [(5, 'block')])
     bash = Card('Bash', 2, 'Attack', [(8, 'dmg'), (2, 'vuln')])
-    deck = Deck([strike, defend, bash, strike, defend, bash])
+    deck = Deck([strike, strike, strike, strike, defend, defend, defend, defend, bash])
     return Player(64, deck)
-#make moves for nibbit enemy
+#make moves for nibbit enemy: 
+# 1. butt: 13 damage
+# 2. slice: 7 damage, 6 block
+# 3. hiss: 3 strength
 def make_nibbit():
-    moveset = [[(13, 'dmg')], [(7, 'block'), (6, 'dmg')], [(3, 'strength')]]
-    return Enemy(45, moveset)
+    moveset = [[(13, 'dmg')], [(7, 'dmg'), (6, 'block')], [(3, 'strength')]]
+    hp = random.randint(44, 48) #idk if we want to keep a way to set a specific hp in classes.oy so i only added random here
+    return Enemy(hp, moveset)
 #registry for player characters and enemies so we can add more in the future if we have time/if we want to
 CHARACTERS = {'1': ('Clad', make_clad),}
 ENEMIES = {'1': ('Nibbit', make_nibbit),}
