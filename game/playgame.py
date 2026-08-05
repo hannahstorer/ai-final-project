@@ -113,25 +113,25 @@ def pick_enemy(options):
 def run_fight():
     char_name, char_build_character = pick_character(CHARACTERS)
     enemy_name, enemy_build_enemy = pick_enemy(ENEMIES)
-    clad = char_build_character()
-    nibbit = enemy_build_enemy()
+    player = char_build_character()
+    enemy = enemy_build_enemy()
     print(f" You have chosen {char_name} as your character. The enemy is {enemy_name}.")
     turn = 1
-    while clad.hp > 0 and nibbit.hp > 0:
+    while player.hp > 0 and enemy.hp > 0:
         print(f"\n --------- Turn {turn} ---------")
-        player_turn(clad, nibbit)
-        if nibbit.hp <= 0:
+        player_turn(player, enemy)
+        if enemy.hp <= 0:
             break
-        nibbit.start_turn()
-        nibbit.take_turn(clad)
-        if clad.hp <= 0:
+        enemy.start_turn()
+        enemy.take_turn(player)
+        if player.hp <= 0:
             break
         turn += 1
     print("\n" + "-" * 40)
-    if clad.hp <= 0:
-        print("You lost to Nibbit.")
+    if player.hp <= 0:
+        print(f"You lost to {enemy.name}.")
     else:
-        print(f"You defeated Nibbit! HP left: {clad.hp}")
+        print(f"You defeated {enemy.name}! HP left: {player.hp}")
     print("-" * 40)
 
 if __name__ == "__main__":
