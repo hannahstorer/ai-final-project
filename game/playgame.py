@@ -25,9 +25,9 @@ def enemy_move(enemy):
 #gameplay
 def print_state(player,enemy):
     print("\n" + "-" * 40)
-    print(f"Player HP: {player.hp}    Player Block: {player.block}   Player Energy: {player.energy}")
-    print(f"Nibbit HP: {enemy.hp}    Nibbit Block: {enemy.block}    Nibbit Strength: {enemy.strength}")
-    print(f"Nibbit's next move: {enemy_move(enemy)}")
+    print(f"{player.name} HP: {player.hp}    {player.name} Block: {player.block}   {player.name} Energy: {player.energy}")
+    print(f"{enemy.name} HP: {enemy.hp}    {enemy.name} Block: {enemy.block}    {enemy.name} Strength: {enemy.strength}")
+    print(f"{enemy.name}'s next move: {enemy_move(enemy)}")
     print("-" * 40)
     print("Hand:")
     for i, card in enumerate (player.deck.hand):
@@ -62,8 +62,8 @@ def player_turn(player, enemy):
         else:
             pile = 'discard_pile'
         player.deck.move_card(card, 'hand', pile)
-        print(f"Player HP: {player.hp}  Player Block: {player.block}    Player Energy: {player.energy}")
-        print(f"Nibbit's next move: {enemy_move(enemy)}")
+        print(f"{player.name} HP: {player.hp}  {player.name} Block: {player.block}    {player.name} Energy: {player.energy}")
+        print(f"{enemy.name}'s next move: {enemy_move(enemy)}")
         print()
         print(f"You played the card {card.name}. Play another card or 'end turn'!")
         print()
@@ -77,7 +77,7 @@ def make_clad():
     defend = Card('Defend', 1, 'Skill', [(5, 'block')])
     bash = Card('Bash', 2, 'Attack', [(8, 'dmg'), (2, 'vuln')])
     deck = Deck([strike, strike, strike, strike, defend, defend, defend, defend, bash])
-    return Player(64, deck)
+    return Player(64, deck, name='Clad')
 #make moves for nibbit enemy: 
 # 1. butt: 13 damage
 # 2. slice: 7 damage, 6 block
@@ -85,7 +85,7 @@ def make_clad():
 def make_nibbit():
     moveset = [[(13, 'dmg')], [(7, 'dmg'), (6, 'block')], [(3, 'strength')]]
     hp = random.randint(44, 48) #idk if we want to keep a way to set a specific hp in classes.oy so i only added random here
-    return Enemy(hp, moveset)
+    return Enemy(hp, moveset, name='Nibbit')
 #registry for player characters and enemies so we can add more in the future if we have time/if we want to
 CHARACTERS = {'1': ('Clad', make_clad),}
 ENEMIES = {'1': ('Nibbit', make_nibbit),}
@@ -113,25 +113,25 @@ def pick_enemy(options):
 def run_fight():
     char_name, char_build_character = pick_character(CHARACTERS)
     enemy_name, enemy_build_enemy = pick_enemy(ENEMIES)
-    clad = char_build_character()
-    nibbit = enemy_build_enemy()
+    player = char_build_character()
+    enemy = enemy_build_enemy()
     print(f" You have chosen {char_name} as your character. The enemy is {enemy_name}.")
     turn = 1
-    while clad.hp > 0 and nibbit.hp > 0:
+    while player.hp > 0 and enemy.hp > 0:
         print(f"\n --------- Turn {turn} ---------")
-        player_turn(clad, nibbit)
-        if nibbit.hp <= 0:
+        player_turn(player, enemy)
+        if enemy.hp <= 0:
             break
-        nibbit.start_turn()
-        nibbit.take_turn(clad)
-        if clad.hp <= 0:
+        enemy.start_turn()
+        enemy.take_turn(player)
+        if player.hp <= 0:
             break
         turn += 1
     print("\n" + "-" * 40)
-    if clad.hp <= 0:
-        print("You lost to Nibbit.")
+    if player.hp <= 0:
+        print(f"You lost to {enemy.name}.")
     else:
-        print(f"You defeated Nibbit! HP left: {clad.hp}")
+        print(f"You defeated {enemy.name}! HP left: {player.hp}")
     print("-" * 40)
 
 if __name__ == "__main__":
