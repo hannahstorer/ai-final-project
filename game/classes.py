@@ -204,7 +204,7 @@ clad = Player(64, clad_deck, name='Clad')
 
 nibbit_moveset = [
     [(13, 'dmg')],
-    [(7, 'block'),(6, 'dmg')],
+    [(6, 'block'),(7, 'dmg')],
     [(3, 'strength')]]
 
 nibbit = Enemy(45, nibbit_moveset, name='Nibbit')
