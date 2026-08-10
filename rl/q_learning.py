@@ -2,6 +2,7 @@ import sys
 import pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / 'game'))
 
+import matplotlib.pyplot as plt
 import random
 import pickle
 import json
@@ -188,3 +189,12 @@ if __name__ == "__main__":
     print("Random as baseline")
     random_stats = evaluate(env, defaultdict(lambda: np.zeros(len(ACTIONS))), episodes = 1000)
     print("Random:", random_stats)
+
+    window = 500
+    smoothed = np.convolve(returns, np.ones(window)/window, mode='valid')
+    plt.plot(smoothed)
+    plt.xlabel('Episode')
+    plt.ylabel(f'Smoothed Return (window={window})')
+    plt.title('Q-learning Training Performance')
+    plt.savefig('results/training_performance.png')
+    plt.show()
