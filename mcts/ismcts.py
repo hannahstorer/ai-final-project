@@ -1,6 +1,6 @@
 import copy
 import random
-from classes import Card, Deck, Player, Enemy
+from game.classes import Card, Deck, Player, Enemy
 
 def deepcopy_state(player, enemy): #deepcopy so we dont modify the original state
     return copy.deepcopy(player), copy.deepcopy(enemy)
