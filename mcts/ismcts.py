@@ -54,6 +54,44 @@ def is_fight_over(player, enemy): #check if the fight is over
     else:
         return False
 
+def rollout_policy(player, enemy): #added rollout poilcy to give more logic behind picking cards
+    available_moves = possible_moves(player, enemy)
+    if len(available_moves) == 1:
+        return available_moves[0]
+    incoming_dmg = 0
+    for value, task in enemy.moveset[enemy.move]:
+        if task == 'dmg':
+            incoming_dmg += value + enemy.strength
+    needed_block = max(0, incoming_dmg - player.block)
+    block_moves = []
+    dmg_moves = []
+    for move in available_moves:
+        if move[0] != 'play':
+            continue
+        card = None
+        for x in player.deck.hand:
+            if x.name == move[1]:
+                card = x
+                break
+        gives_block = False
+        best_dmg_value = 0
+        for value, task in card.effects:
+            if task == 'block':
+                gives_block = True
+            if task == 'dmg':
+                if value > best_dmg_value:
+                    best_dmg_value = value
+        if gives_block:
+            block_moves.append(move)
+        if best_dmg_value:
+            dmg_moves.append((move, best_dmg_value))
+    if needed_block > 0 and block_moves:
+        return random.choice(block_moves)
+    if dmg_moves:
+        dmg_moves.sort(key=lambda pair: pair[1], reverse=True)
+        return dmg_moves[0][0]
+    return random.choice(available_moves)
+
 def evaluate_outcome(player): #return remaining hp
     if player.hp <= 0:
         return -100 #give a really bad reward if player dies because living with 1hp is way better than dying and should be treated differently
@@ -118,8 +156,7 @@ def ismcts_search(root_player, root_enemy, iterations=500, rollout_depth=40): #a
                 path.append(node)
         depth = 0 #random rollout until fight ends because we guess shuffle (unknown info)
         while not is_fight_over(player, enemy) and depth < rollout_depth:
-            available_moves = possible_moves(player, enemy)
-            move = random.choice(available_moves)
+            move = rollout_policy(player, enemy)
             play_move(player, enemy, move)
             depth += 1
         reward = evaluate_outcome(player)
