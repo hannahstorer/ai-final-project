@@ -3,7 +3,7 @@ from mcts.ismcts import run_ismcts, is_fight_over
 import random
 import math
 
-def make_clad(): #seperate than playgame so changing menus and stuff wouldnt affect this
+def make_clad(): #seperate than playgame so changing menus and stuff wont affect this
     strike = Card('Strike', 1, 'Attack', [(6, 'dmg')])
     defend = Card('Defend', 1, 'Skill', [(5, 'block')])
     bash = Card('Bash', 2, 'Attack', [(8, 'dmg'), (2, 'vuln')])
