@@ -100,12 +100,13 @@ class Deck:
 
 
 class Player:
-    def __init__(self, hp, deck):
+    def __init__(self, hp, deck, name='Player'):
         self.hp = hp
         self.block = 0
         self.energy = 3
         self.debuffs = []
         self.deck = deck
+        self.name = name
 
     def start_turn(self):
         self.block = 0
@@ -134,13 +135,14 @@ class Player:
                 self.debuffs.append([debuff, value])
 
 class Enemy:
-    def __init__(self, hp, moveset, init_move=0):
+    def __init__(self, hp, moveset, init_move=0, name='Enemy'):
         self.hp = hp
         self.block = 0
         self.moveset = moveset
         self.debuffs = []
         self.strength = 0
         self.move = init_move
+        self.name = name
 
     def start_turn(self):
         self.block = 0
@@ -198,14 +200,14 @@ defend = Card('Defend', 1, 'Skill', [(5, 'block')])
 bash = Card('Bash', 2, 'Attack', [(8, 'dmg'), (2, 'vuln')])
 
 clad_deck = Deck([strike, defend, bash, strike, defend, bash])
-clad = Player(64, clad_deck)
+clad = Player(64, clad_deck, name='Clad')
 
 nibbit_moveset = [
     [(13, 'dmg')],
-    [(7, 'block'),(6, 'dmg')],
+    [(6, 'block'),(7, 'dmg')],
     [(3, 'strength')]]
 
-nibbit = Enemy(45, nibbit_moveset)
+nibbit = Enemy(45, nibbit_moveset, name='Nibbit')
 
 def main():
     for i in range(6):
