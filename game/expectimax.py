@@ -238,7 +238,7 @@ def play_game_expectimax(player, enemies, depth):
 DEPTH = 5
 
 final_hps = []
-for i in range(100):
+for i in range(1000):
     clad_deck = Deck([strike, strike, strike, strike, strike, defend, defend, defend, defend, bash])
     clad = Player(64, clad_deck)
     nibbit = Enemy(random.randint(44, 48), nibbit_moveset)
