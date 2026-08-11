@@ -183,7 +183,7 @@ def plot_hp_histogram(trial_results, filename="mcts_histogram.png"):
     plt.close()
     print(f"saved histogram to {filename}")
 
-def plot_hp_comparison(trial_results_list, filename="hp_comparison.png"):
+def plot_hp_comparison(trial_results_list, filename="mcts_vs_random_comparison.png"):
     plt.figure()
     for trial_results in trial_results_list:
         final_hps = []
