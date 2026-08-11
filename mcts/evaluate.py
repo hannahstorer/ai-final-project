@@ -178,7 +178,7 @@ def plot_hp_histogram(trial_results, filename="mcts_histogram.png"):
     plt.hist(final_hps, bins=10, edgecolor='black')
     plt.xlabel('Final Player HP')
     plt.ylabel('Number of Fights')
-    plt.title(f"Final HP Distribution - {trial_results['label']}")
+    plt.title(f"Final HP Distribution Over 1000 Games - {trial_results['label']}")
     plt.savefig(filename)
     plt.close()
     print(f"saved histogram to {filename}")
