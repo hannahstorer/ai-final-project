@@ -11,6 +11,7 @@ from collections import defaultdict
 
 import numpy as np
 from helper_functions import ACTIONS, END_TURN, state_to_key, make_clad, make_nibbit
+from playgame import enemy_move
 
 
 class FightEnv:
@@ -166,6 +167,80 @@ def evaluate(env, Q, episodes = 1000):
     }
 
 
+def hp_trace(env, Q, use_greedy=True):
+    env.reset()
+    hp_history = [env.player.hp]
+    while not env.done:
+        legal = env.legal_actions()
+        if use_greedy:
+            state = env._state()
+            q_row = Q.get(state, np.zeros(len(ACTIONS)))
+            best_q = max(q_row[a] for a in legal)
+            best = [a for a in legal if q_row[a] == best_q]
+            action = random.choice(best)
+        else:
+            action = random.choice(legal)
+        env.step(action)
+        if action == END_TURN or env.done:
+            hp_history.append(env.player.hp)
+    return hp_history, env.result
+
+
+def plot_hp_comparison(env, Q, seed=42):
+    random.seed(seed)
+    greedy_hp, greedy_result = hp_trace(env, Q, use_greedy=True)
+
+    random.seed(seed)
+    random_Q = defaultdict(lambda: np.zeros(len(ACTIONS)))
+    random_hp, random_result = hp_trace(env, random_Q, use_greedy=False)
+
+    plt.figure()
+    plt.plot(greedy_hp, marker='o', label=f'Q-learning ({greedy_result}, {64 - greedy_hp[-1]} HP lost)')
+    plt.plot(random_hp, marker='s', label=f'Random ({random_result}, {64 - random_hp[-1]} HP lost)')
+    plt.xlabel('Turn number')
+    plt.ylabel('Player HP')
+    plt.title('Player HP over a Single Fight: Q-learning vs Random')
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), ncol=2)
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig('results/hp_comparison.png', dpi=120)
+    plt.show()
+
+
+def demo_run(env, Q, n_runs=3):
+    for run in range(n_runs):
+        print(f"\n{'='*50}")
+        print(f"DEMO FIGHT {run + 1}")
+        print(f"{'='*50}")
+        env.reset()
+        print(f"Start: Clad HP={env.player.hp}, Nibbit HP={env.enemy.hp}")
+
+        step_num = 0
+        while not env.done:
+            state = env._state()
+            legal = env.legal_actions()
+            q_row = Q.get(state, np.zeros(len(ACTIONS)))
+            best_q = max(q_row[a] for a in legal)
+            best = [a for a in legal if q_row[a] == best_q]
+            action = random.choice(best)
+
+            hand_before = [c.name for c in env.player.deck.hand]
+            hp_before = env.player.hp
+            enemy_hp_before = env.enemy.hp
+            intent_before = enemy_move(env.enemy)
+
+            env.step(action)
+            step_num += 1
+
+            print(f"\n  Step {step_num} | Turn {env.turn} | Hand: {hand_before}")
+            print(f"  Nibbit's next move: {intent_before}")
+            print(f"  Action: {ACTIONS[action]}")
+            print(f"  Clad HP: {hp_before} -> {env.player.hp} (block {env.player.block})")
+            print(f"  Nibbit HP: {enemy_hp_before} -> {env.enemy.hp}")
+
+        print(f"\n  Result: {env.result.upper()} in {env.turn} turns, {64 - env.player.hp} HP lost")
+
+
 if __name__ == "__main__":
     random.seed(0)
     env = FightEnv()
@@ -189,6 +264,10 @@ if __name__ == "__main__":
     print("Random as baseline")
     random_stats = evaluate(env, defaultdict(lambda: np.zeros(len(ACTIONS))), episodes = 1000)
     print("Random:", random_stats)
+
+    demo_run(env, Q, n_runs=3)
+
+    plot_hp_comparison(env, Q)
 
     window = 500
     smoothed = np.convolve(returns, np.ones(window)/window, mode='valid')
