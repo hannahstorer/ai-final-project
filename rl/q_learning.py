@@ -18,7 +18,6 @@ class FightEnv:
     def __init__(self, seed = None):
         if seed is not None:
             random.seed(seed)
-        self.turn_cap = 30
         self.loss_penalty = 100.0
         self.damage_reward_scale = 0.1
         self.reset()
@@ -87,14 +86,6 @@ class FightEnv:
 
         self.turn += 1
 
-        #If player takes too many turns -> Loss Penalty
-        if self.turn > self.turn_cap:
-            self.done = True
-            self.result = 'timeout'
-            reward -= self.loss_penalty
-            return self._state(), reward, True
-
-
         self.player.start_turn()
         self.player.energy = 3
         self.player.deck.draw(5)
@@ -140,7 +131,7 @@ def train_q_learning(env, episodes = 50000, alpha = 0.1, gamma=1.0, epsilon = 0.
     return Q, episode_returns
 
 def evaluate(env, Q, episodes = 1000):
-    wins = losses = timeouts = 0
+    wins = losses = 0
     hp_lost_on_wins = []
     turns = []
 
@@ -154,12 +145,10 @@ def evaluate(env, Q, episodes = 1000):
             best = [a for a in legal if q_row[a] == best_q]
             action = random.choice(best)
             env.step(action)
-        
+
         if env.result == 'win':
             wins += 1
             hp_lost_on_wins.append(64 - env.player.hp)
-        elif env.result == 'timeout':
-            timeouts += 1
         else:
             losses += 1
         turns.append(env.turn)
@@ -190,27 +179,6 @@ def hp_trace(env, Q, use_greedy=True):
     return hp_history, env.result
 
 
-def plot_hp_comparison(env, Q, seed=251):
-    random.seed(seed)
-    greedy_hp, greedy_result = hp_trace(env, Q, use_greedy=True)
-
-    random.seed(seed)
-    random_Q = defaultdict(lambda: np.zeros(len(ACTIONS)))
-    random_hp, random_result = hp_trace(env, random_Q, use_greedy=False)
-
-    plt.figure()
-    plt.plot(greedy_hp, marker='o', label=f'Q-learning ({greedy_result}, {64 - greedy_hp[-1]} HP lost)')
-    plt.plot(random_hp, marker='s', label=f'Random ({random_result}, {64 - random_hp[-1]} HP lost)')
-    plt.xlabel('Turn number')
-    plt.ylabel('Player HP')
-    plt.title('Player HP over a Single Fight: Q-learning vs Random')
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), ncol=2)
-    plt.grid(True, alpha=0.3)
-    plt.tight_layout()
-    plt.savefig('results/hp_comparison.png', dpi=120)
-    plt.show()
-
-
 def demo_run(env, Q, n_runs=3):
     for run in range(n_runs):
         print(f"\n{'='*50}")
@@ -219,26 +187,31 @@ def demo_run(env, Q, n_runs=3):
         env.reset()
         print(f"Start: Clad HP={env.player.hp}, Nibbit HP={env.enemy.hp}")
 
-        step_num = 0
         while not env.done:
-            state = env._state()
-            legal = env.legal_actions()
-            q_row = Q.get(state, np.zeros(len(ACTIONS)))
-            best_q = max(q_row[a] for a in legal)
-            best = [a for a in legal if q_row[a] == best_q]
-            action = random.choice(best)
-
+            turn_num = env.turn
             hand_before = [c.name for c in env.player.deck.hand]
             hp_before = env.player.hp
             enemy_hp_before = env.enemy.hp
             intent_before = enemy_move(env.enemy)
+            cards_played = []
 
-            env.step(action)
-            step_num += 1
+            while not env.done:
+                state = env._state()
+                legal = env.legal_actions()
+                q_row = Q.get(state, np.zeros(len(ACTIONS)))
+                best_q = max(q_row[a] for a in legal)
+                best = [a for a in legal if q_row[a] == best_q]
+                action = random.choice(best)
 
-            print(f"\n  Step {step_num} | Turn {env.turn} | Hand: {hand_before}")
+                if action == END_TURN:
+                    env.step(action)
+                    break
+                cards_played.append(ACTIONS[action])
+                env.step(action)
+
+            print(f"\n  Turn {turn_num} | Hand: {hand_before}")
             print(f"  Nibbit's next move: {intent_before}")
-            print(f"  Action: {ACTIONS[action]}")
+            print(f"  Actions: {cards_played + ['END']}")
             print(f"  Clad HP: {hp_before} -> {env.player.hp} (block {env.player.block})")
             print(f"  Nibbit HP: {enemy_hp_before} -> {env.enemy.hp}")
 
@@ -268,11 +241,7 @@ if __name__ == "__main__":
     print("Random as baseline")
     random_stats = evaluate(env, defaultdict(lambda: np.zeros(len(ACTIONS))), episodes = 1000)
     print("Random:", random_stats)
-
     demo_run(env, Q, n_runs=3)
-
-    plot_hp_comparison(env, Q)
-
     window = 500
     smoothed = np.convolve(returns, np.ones(window)/window, mode='valid')
     plt.plot(smoothed)
