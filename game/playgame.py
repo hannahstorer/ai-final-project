@@ -1,4 +1,4 @@
-from classes import Card, Deck, Player, Enemy
+from game.classes import Card, Deck, Player, Enemy
 import random
 #to run the game go to game folder in terminal and run playgame.py
 #cd game
