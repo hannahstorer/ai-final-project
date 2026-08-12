@@ -18,7 +18,6 @@ class FightEnv:
     def __init__(self, seed = None):
         if seed is not None:
             random.seed(seed)
-        self.turn_cap = 30
         self.loss_penalty = 100.0
         self.damage_reward_scale = 0.1
         self.reset()
@@ -87,14 +86,6 @@ class FightEnv:
 
         self.turn += 1
 
-        #If player takes too many turns -> Loss Penalty
-        if self.turn > self.turn_cap:
-            self.done = True
-            self.result = 'timeout'
-            reward -= self.loss_penalty
-            return self._state(), reward, True
-
-
         self.player.start_turn()
         self.player.energy = 3
         self.player.deck.draw(5)
@@ -140,7 +131,7 @@ def train_q_learning(env, episodes = 50000, alpha = 0.1, gamma=1.0, epsilon = 0.
     return Q, episode_returns
 
 def evaluate(env, Q, episodes = 1000):
-    wins = losses = timeouts = 0
+    wins = losses = 0
     hp_lost_on_wins = []
     turns = []
 
@@ -154,12 +145,10 @@ def evaluate(env, Q, episodes = 1000):
             best = [a for a in legal if q_row[a] == best_q]
             action = random.choice(best)
             env.step(action)
-        
+
         if env.result == 'win':
             wins += 1
             hp_lost_on_wins.append(64 - env.player.hp)
-        elif env.result == 'timeout':
-            timeouts += 1
         else:
             losses += 1
         turns.append(env.turn)
@@ -211,6 +200,47 @@ def plot_hp_comparison(env, Q, seed=251):
     plt.show()
 
 
+def print_q_table(Q, max_rows=20):
+    print(f"\nQ-table: {len(Q)} states learned")
+    header = (
+        f"{'pHP':>4} {'nrg':>3} {'pBlk':>4} {'eHP':>4} {'eBlk':>4} "
+        f"{'eStr':>4} {'eMv':>3} {'S':>2} {'D':>2} {'B':>2} | "
+        f"{'Bash':>8} {'Defend':>8} {'Strike':>8} {'END':>8} | greedy"
+    )
+
+    def print_section(title, items):
+        print(f"\n--- {title} ({len(items)} shown) ---")
+        print(header)
+        print("-" * len(header))
+        for state, q_row in items:
+            best = int(np.argmax(q_row))
+            state_str = " ".join(f"{v:>{w}}" for v, w in zip(state, [4,3,4,4,4,4,3,2,2,2]))
+            q_str = " ".join(f"{q:>8.2f}" for q in q_row)
+            print(f"{state_str} | {q_str} | {ACTIONS[best]}")
+
+    # Only show states where the decision matters (Q-value spread > 1)
+    decisive = [(s, q) for s, q in Q.items() if q.max() - q.min() > 1.0]
+
+    # Low player HP (danger states, bucket 0 or 1 = 0-31 HP)
+    low_php = sorted(
+        [(s, q) for s, q in decisive if s[0] <= 1],
+        key=lambda kv: -(kv[1].max() - kv[1].min())
+    )[:max_rows]
+
+    # Enemy near death (finish-the-fight states, bucket 0 or 1 = 0-11 HP)
+    low_ehp = sorted(
+        [(s, q) for s, q in decisive if s[3] <= 1],
+        key=lambda kv: -(kv[1].max() - kv[1].min())
+    )[:max_rows]
+
+    print_section("Low player HP (danger)", low_php)
+    print_section("Enemy near death (finish it)", low_ehp)
+
+    print("\nState columns: pHP=player HP bucket (//16), nrg=energy, pBlk=player block,")
+    print("  eHP=enemy HP bucket (//6), eBlk=enemy block, eStr=enemy strength, eMv=enemy move,")
+    print("  S/D/B=count of Strike/Defend/Bash in hand")
+
+
 def demo_run(env, Q, n_runs=3):
     for run in range(n_runs):
         print(f"\n{'='*50}")
@@ -219,26 +249,31 @@ def demo_run(env, Q, n_runs=3):
         env.reset()
         print(f"Start: Clad HP={env.player.hp}, Nibbit HP={env.enemy.hp}")
 
-        step_num = 0
         while not env.done:
-            state = env._state()
-            legal = env.legal_actions()
-            q_row = Q.get(state, np.zeros(len(ACTIONS)))
-            best_q = max(q_row[a] for a in legal)
-            best = [a for a in legal if q_row[a] == best_q]
-            action = random.choice(best)
-
+            turn_num = env.turn
             hand_before = [c.name for c in env.player.deck.hand]
             hp_before = env.player.hp
             enemy_hp_before = env.enemy.hp
             intent_before = enemy_move(env.enemy)
+            cards_played = []
 
-            env.step(action)
-            step_num += 1
+            while not env.done:
+                state = env._state()
+                legal = env.legal_actions()
+                q_row = Q.get(state, np.zeros(len(ACTIONS)))
+                best_q = max(q_row[a] for a in legal)
+                best = [a for a in legal if q_row[a] == best_q]
+                action = random.choice(best)
 
-            print(f"\n  Step {step_num} | Turn {env.turn} | Hand: {hand_before}")
+                if action == END_TURN:
+                    env.step(action)
+                    break
+                cards_played.append(ACTIONS[action])
+                env.step(action)
+
+            print(f"\n  Turn {turn_num} | Hand: {hand_before}")
             print(f"  Nibbit's next move: {intent_before}")
-            print(f"  Action: {ACTIONS[action]}")
+            print(f"  Actions: {cards_played + ['END']}")
             print(f"  Clad HP: {hp_before} -> {env.player.hp} (block {env.player.block})")
             print(f"  Nibbit HP: {enemy_hp_before} -> {env.enemy.hp}")
 
@@ -268,6 +303,8 @@ if __name__ == "__main__":
     print("Random as baseline")
     random_stats = evaluate(env, defaultdict(lambda: np.zeros(len(ACTIONS))), episodes = 1000)
     print("Random:", random_stats)
+
+    print_q_table(Q, max_rows=30)
 
     demo_run(env, Q, n_runs=3)
 
