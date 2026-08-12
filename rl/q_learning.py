@@ -1,7 +1,3 @@
-import sys
-import pathlib
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / 'game'))
-
 import matplotlib.pyplot as plt
 import random
 import pickle
@@ -10,8 +6,8 @@ import os
 from collections import defaultdict
 
 import numpy as np
-from helper_functions import ACTIONS, END_TURN, state_to_key, make_clad, make_nibbit
-from playgame import enemy_move
+from rl.helper_functions import ACTIONS, END_TURN, state_to_key, make_clad, make_nibbit
+from game.playgame import enemy_move
 
 
 class FightEnv:

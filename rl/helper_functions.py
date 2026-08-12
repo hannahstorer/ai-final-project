@@ -1,5 +1,5 @@
 import random
-from playgame import make_clad, make_nibbit
+from game.playgame import make_clad, make_nibbit
 
 ACTIONS = ['Bash', 'Defend', 'Strike', 'END']
 END_TURN = 3
