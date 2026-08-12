@@ -179,68 +179,6 @@ def hp_trace(env, Q, use_greedy=True):
     return hp_history, env.result
 
 
-def plot_hp_comparison(env, Q, seed=251):
-    random.seed(seed)
-    greedy_hp, greedy_result = hp_trace(env, Q, use_greedy=True)
-
-    random.seed(seed)
-    random_Q = defaultdict(lambda: np.zeros(len(ACTIONS)))
-    random_hp, random_result = hp_trace(env, random_Q, use_greedy=False)
-
-    plt.figure()
-    plt.plot(greedy_hp, marker='o', label=f'Q-learning ({greedy_result}, {64 - greedy_hp[-1]} HP lost)')
-    plt.plot(random_hp, marker='s', label=f'Random ({random_result}, {64 - random_hp[-1]} HP lost)')
-    plt.xlabel('Turn number')
-    plt.ylabel('Player HP')
-    plt.title('Player HP over a Single Fight: Q-learning vs Random')
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), ncol=2)
-    plt.grid(True, alpha=0.3)
-    plt.tight_layout()
-    plt.savefig('results/hp_comparison.png', dpi=120)
-    plt.show()
-
-
-def print_q_table(Q, max_rows=20):
-    print(f"\nQ-table: {len(Q)} states learned")
-    header = (
-        f"{'pHP':>4} {'nrg':>3} {'pBlk':>4} {'eHP':>4} {'eBlk':>4} "
-        f"{'eStr':>4} {'eMv':>3} {'S':>2} {'D':>2} {'B':>2} | "
-        f"{'Bash':>8} {'Defend':>8} {'Strike':>8} {'END':>8} | greedy"
-    )
-
-    def print_section(title, items):
-        print(f"\n--- {title} ({len(items)} shown) ---")
-        print(header)
-        print("-" * len(header))
-        for state, q_row in items:
-            best = int(np.argmax(q_row))
-            state_str = " ".join(f"{v:>{w}}" for v, w in zip(state, [4,3,4,4,4,4,3,2,2,2]))
-            q_str = " ".join(f"{q:>8.2f}" for q in q_row)
-            print(f"{state_str} | {q_str} | {ACTIONS[best]}")
-
-    # Only show states where the decision matters (Q-value spread > 1)
-    decisive = [(s, q) for s, q in Q.items() if q.max() - q.min() > 1.0]
-
-    # Low player HP (danger states, bucket 0 or 1 = 0-31 HP)
-    low_php = sorted(
-        [(s, q) for s, q in decisive if s[0] <= 1],
-        key=lambda kv: -(kv[1].max() - kv[1].min())
-    )[:max_rows]
-
-    # Enemy near death (finish-the-fight states, bucket 0 or 1 = 0-11 HP)
-    low_ehp = sorted(
-        [(s, q) for s, q in decisive if s[3] <= 1],
-        key=lambda kv: -(kv[1].max() - kv[1].min())
-    )[:max_rows]
-
-    print_section("Low player HP (danger)", low_php)
-    print_section("Enemy near death (finish it)", low_ehp)
-
-    print("\nState columns: pHP=player HP bucket (//16), nrg=energy, pBlk=player block,")
-    print("  eHP=enemy HP bucket (//6), eBlk=enemy block, eStr=enemy strength, eMv=enemy move,")
-    print("  S/D/B=count of Strike/Defend/Bash in hand")
-
-
 def demo_run(env, Q, n_runs=3):
     for run in range(n_runs):
         print(f"\n{'='*50}")
@@ -303,13 +241,7 @@ if __name__ == "__main__":
     print("Random as baseline")
     random_stats = evaluate(env, defaultdict(lambda: np.zeros(len(ACTIONS))), episodes = 1000)
     print("Random:", random_stats)
-
-    print_q_table(Q, max_rows=30)
-
     demo_run(env, Q, n_runs=3)
-
-    plot_hp_comparison(env, Q)
-
     window = 500
     smoothed = np.convolve(returns, np.ones(window)/window, mode='valid')
     plt.plot(smoothed)
