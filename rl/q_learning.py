@@ -20,6 +20,7 @@ class FightEnv:
             random.seed(seed)
         self.turn_cap = 30
         self.loss_penalty = 100.0
+        self.damage_reward_scale = 0.1
         self.reset()
     
     def reset(self):
@@ -55,15 +56,19 @@ class FightEnv:
             card = next(c for c in self.player.deck.hand if c.name == card_name)
             assert card.cost <= self.player.energy, "Not enough energy to play this card"
 
+            enemy_hp_before = self.enemy.hp
             card.play(self.player, enemy = self.enemy)
             pile = 'exhaust_pile' if card.exhaust else 'discard_pile'
             self.player.deck.move_card(card, 'hand', pile)
+
+            damage_dealt = max(0, enemy_hp_before - self.enemy.hp)
+            reward = self.damage_reward_scale * damage_dealt
 
             #Enemy died -> Win Reward
             if self.enemy.hp <= 0:
                 self.done = True
                 self.result = 'win'
-            return self._state(), 0.0, self.done
+            return self._state(), reward, self.done
 
 
         # Normal Turn -> HP Loss Reward
@@ -113,7 +118,7 @@ def train_q_learning(env, episodes = 50000, alpha = 0.1, gamma=1.0, epsilon = 0.
         legal = env.legal_actions()
         total_reward = 0.0
         done = False
-        
+
         while not done:
             action = epsilon_greedy(Q[state], legal, epsilon)
             next_state, reward, done = env.step(action)
@@ -161,7 +166,6 @@ def evaluate(env, Q, episodes = 1000):
     
     return {
         'win_rate' : wins / episodes,
-        'timeout_rate' : timeouts / episodes,
         'mean_hp_lost_on_win': (sum(hp_lost_on_wins) / len(hp_lost_on_wins)) if hp_lost_on_wins else None,
         'mean_turns' : sum(turns) / len(turns),
     }
@@ -186,7 +190,7 @@ def hp_trace(env, Q, use_greedy=True):
     return hp_history, env.result
 
 
-def plot_hp_comparison(env, Q, seed=42):
+def plot_hp_comparison(env, Q, seed=251):
     random.seed(seed)
     greedy_hp, greedy_result = hp_trace(env, Q, use_greedy=True)
 
