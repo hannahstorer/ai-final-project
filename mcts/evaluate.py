@@ -2,7 +2,6 @@ from game.classes import Card, Deck, Player, Enemy
 from mcts.ismcts import run_ismcts, is_fight_over, possible_moves
 import random
 import matplotlib.pyplot as plt
-import os
 
 def enemy_move(enemy): #playgame enemy_move but for mcts so it prints the full game
     move = enemy.moveset[enemy.move]
