@@ -148,11 +148,7 @@ def ismcts_search(root_player, root_enemy, iterations=500, rollout_depth=40): #a
                 if x not in node.children:
                     not_tried.append(x)
             if not_tried:
-                suggested = rollout_policy(player, enemy)
-                if suggested in not_tried:
-                    move = suggested
-                else:
-                    move = random.choice(not_tried)
+                move = random.choice(not_tried)
                 play_move(player, enemy, move)
                 child = Node(move=move, parent=node)
                 node.children[move] = child
