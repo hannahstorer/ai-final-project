@@ -2,6 +2,7 @@ from game.classes import Card, Deck, Player, Enemy
 from mcts.ismcts import run_ismcts, is_fight_over, possible_moves
 import random
 import matplotlib.pyplot as plt
+import os
 
 def enemy_move(enemy): #playgame enemy_move but for mcts so it prints the full game
     move = enemy.moveset[enemy.move]
@@ -205,7 +206,7 @@ def compare_ismcts_vs_random(n_fights=1000, iterations=150):
     ismcts_results = run_trials(quick_ismcts_policy, n_fights=n_fights, label=f"ISMCTS ({iterations} iterations)")
     print(f"\n --- running random baseline for {n_fights} fights --- ")
     random_results = run_trials(random_policy, n_fights=n_fights, label="Random baseline")
-    plot_hp_comparison([ismcts_results, random_results], filename="hp_comparison.png")
+    plot_hp_comparison([ismcts_results, random_results], filename="mcts_vs_random_comparison.png")
     return ismcts_results, random_results
 
 if __name__ == "__main__":
